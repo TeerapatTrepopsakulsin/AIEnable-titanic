@@ -43,7 +43,13 @@ X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42, 
 
 
 # Model Construction
-clf = LogisticRegression(max_iter=1000, n_jobs=None)
+clf = LogisticRegression(
+    max_iter=1000,
+    C=0.1,              # Add regularization
+    penalty='l2',       # L2 regularization
+    solver='liblinear',
+    random_state=42
+)
 
 pipe = Pipeline(steps=[
     ("preprocess", preprocess),
