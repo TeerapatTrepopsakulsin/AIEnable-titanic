@@ -27,7 +27,7 @@ with c1:
     Sex = st.selectbox("Sex", ["male", "female"], index=1)
 
 with c2:
-    Age = st.number_input("Age", min_value=0, max_value=100, value=28, step=1)
+    Age = st.number_input("Age", min_value=0.0, max_value=100.0, value=28.0, step=1.0)
     SibSp = st.number_input("SibSp", min_value=0, max_value=10, value=0, step=1)
     Parch = st.number_input("Parch", min_value=0, max_value=10, value=0, step=1)
 
@@ -40,9 +40,9 @@ if st.button("Predict"):
     try:
         # Ticket feature preprocessing
         split_ticket_val = Ticket.split(" ")
-        TicketNumber = split_ticket_val.str[-1]
+        TicketNumber = split_ticket_val[-1]
         if len(split_ticket_val) > 1:
-            TicketPrefix = "".join(split_ticket_val.str[:-1])
+            TicketPrefix = "".join(split_ticket_val[:-1])
         else:
             TicketPrefix = ""
         HasPrefix = 1 if TicketPrefix else 0
@@ -73,9 +73,40 @@ if st.button("Predict"):
         pred = data["prediction"]  # "Survived" or "Not Survived"
         prob = data["prob_survive"]
 
-        emoji = "🛟" if pred == "Survived" else "💀"*3
-        st.subheader(emoji)
-        st.write(f"Prediction: **{pred}**")
-        st.write(f"Probability of survival: **{prob}**")
+        # Result
+        st.header(PassengerName)
+
+        # Calculate confidence
+        confidence = max(prob, 1 - prob)
+        emoji_count = int((confidence-0.5)//0.1) + 1
+        if pred == "Survived":
+            emoji = "🛟" * emoji_count
+        else:
+            emoji = "💀" * emoji_count
+
+        st.markdown(f"### **{emoji}**")
+        st.markdown(f"**Prediction:** {pred}")
+        st.markdown(f"**Confidence:** {confidence:.1%}")
+
+        # Visual progress bar
+        if pred == "Survived":
+            st.markdown("""
+            <style>
+            .stProgress > div > div > div > div {
+                background-color: #10B981;  /* Green for survival */
+            }
+            </style>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <style>
+            .stProgress > div > div > div > div {
+                background-color: #EF4444;  /* Red for death */
+            }
+            </style>
+            """, unsafe_allow_html=True)
+        st.progress(prob)
+        st.caption(f"Survival: {prob:.1%} | Death: {(1 - prob):.1%}")
+
     except Exception as e:
         st.error(f"Error calling Backend API: {e}")
